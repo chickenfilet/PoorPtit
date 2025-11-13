@@ -10,8 +10,6 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const CHARGE_DURATION_MS = 2000; // how long you have to spam-tap
 const TAPS_FOR_MAX_POWER = 30; // taps in the window for full power
 
-// TODO: replace with the real Ptit image path or import
-const PTIT_IMAGE_URL = process.env.PUBLIC_URL + "/ptit.png";
 
 const StarJumperMobile = () => {
   const [isCharging, setIsCharging] = useState(false);
@@ -294,7 +292,7 @@ const StarJumperMobile = () => {
             </div>
           </div>
 
-          {/* Ptit image + helper, closer to tree, vertically offset for jump */}
+          {/* Ptit stickman + helper, closer to tree, vertically offset for jump */}
           <div
             className="absolute left-[40%] bottom-4 flex flex-col items-center transition-transform duration-75"
             style={{ transform: `translateY(-${ptitOffsetY}px)` }}
@@ -308,17 +306,31 @@ const StarJumperMobile = () => {
                 </div>
               )}
 
-              {/* Ptit image */}
-              <div className="relative w-24 h-24 flex items-center justify-center">
-                <img
-                  src={PTIT_IMAGE_URL}
-                  alt="Ptit, the grumpy hero"
-                  className="max-h-full max-w-full object-contain drop-shadow-lg" 
-                />
-
-                {/* Eggplant in Ptit's hand (overlayed) */}
-                <div className="absolute bottom-3 right-2 text-2xl drop-shadow">
-                  🍆
+              {/* Ptit stickman */}
+              <div className="relative flex flex-col items-center">
+                {/* head */}
+                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-900 flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full border border-slate-900 flex items-center justify-center">
+                    <div className="w-5 h-5 flex items-center justify-between">
+                      <span className="w-1 h-1 rounded-full bg-slate-900" />
+                      <span className="w-1 h-1 rounded-full bg-slate-900" />
+                    </div>
+                  </div>
+                </div>
+                {/* body */}
+                <div className="w-[2px] h-6 bg-slate-100 mt-1" />
+                {/* arms */}
+                <div className="flex mt-1 items-center">
+                  <div className="w-4 h-[2px] bg-slate-100 -rotate-12 origin-left" />
+                  {/* arm holding eggplant */}
+                  <div className="relative w-4 h-[2px] bg-slate-100 rotate-12 origin-right flex items-center justify-end">
+                    <span className="absolute right-[-6px] text-xl leading-none drop-shadow">🍆</span>
+                  </div>
+                </div>
+                {/* legs */}
+                <div className="flex mt-1">
+                  <div className="w-3 h-[2px] bg-slate-100 -rotate-6 origin-top" />
+                  <div className="w-3 h-[2px] bg-slate-100 rotate-6 origin-top" />
                 </div>
               </div>
             </div>
@@ -326,6 +338,7 @@ const StarJumperMobile = () => {
               Ptit
             </div>
           </div>
+
 
           {/* Tap hint */}
           <div className="absolute inset-x-0 top-2 flex justify-center">
