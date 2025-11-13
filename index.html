@@ -11,7 +11,7 @@ const CHARGE_DURATION_MS = 2000; // how long you have to spam-tap
 const TAPS_FOR_MAX_POWER = 30; // taps in the window for full power
 
 // TODO: replace with the real Ptit image path or import
-const PTIT_IMAGE_URL = "./ptit.png"; // e.g. imported asset or URL
+const PTIT_IMAGE_URL = process.env.PUBLIC_URL + "/ptit.png";
 
 const StarJumperMobile = () => {
   const [isCharging, setIsCharging] = useState(false);
