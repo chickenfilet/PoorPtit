@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Star Jumper 🎄🍆</title>
+    <title>Why OBF doesnt have a x-mas tree (THANKS RAYANE FOR NOTHING) 🎄🍆</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Tailwind via CDN (no build step needed) -->
@@ -27,15 +27,11 @@
     <script type="text/babel">
       const { useState, useEffect, useRef } = React;
 
-      // Star Jumper 🎄🌟
-      // Mobile-friendly timing game.
-      // Tap as fast as possible in a short window to charge Ptit's jump.
-      // Ptit is always the on-screen name; leaderboard shows the player's chosen name.
-
       const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
       const CHARGE_DURATION_MS = 2000; // how long you have to spam-tap
       const TAPS_FOR_MAX_POWER = 30; // taps in the window for full power
+      const STORAGE_KEY = "star-jumper-scores";
 
       function StarJumperMobile() {
         const [isCharging, setIsCharging] = useState(false);
@@ -50,7 +46,7 @@
         const [treeBurned, setTreeBurned] = useState(false);
 
         const [playerName, setPlayerName] = useState("");
-        const [scores, setScores] = useState([]); // only perfect (100) scores
+        const [scores, setScores] = useState([]); // best score per name
         const [lastResult, setLastResult] = useState(null);
         const [hasHelper, setHasHelper] = useState(false);
 
@@ -62,12 +58,10 @@
         const tapCountRef = useRef(0);
         const jumpAnimationRef = useRef(null);
 
-        // Load scores from localStorage on mount (only 100% scores)
+        // Load scores from localStorage on mount
         useEffect(() => {
           try {
-            const stored = window.localStorage.getItem(
-              "star-jumper-perfect-scores"
-            );
+            const stored = window.localStorage.getItem(STORAGE_KEY);
             if (stored) {
               setScores(JSON.parse(stored));
             }
@@ -79,10 +73,7 @@
         // Persist scores
         useEffect(() => {
           try {
-            window.localStorage.setItem(
-              "star-jumper-perfect-scores",
-              JSON.stringify(scores)
-            );
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
           } catch (e) {
             // ignore
           }
@@ -180,6 +171,32 @@
           }
         };
 
+        const updateLeaderboard = (entry) => {
+          const nameKey = entry.name.trim().toLowerCase();
+          setScores((prev) => {
+            const existingIndex = prev.findIndex(
+              (e) => e.name.trim().toLowerCase() === nameKey
+            );
+
+            // No existing score for this name -> add
+            if (existingIndex === -1) {
+              const combined = [...prev, entry];
+              combined.sort((a, b) => b.height - a.height);
+              return combined;
+            }
+
+            // Existing score: only overwrite if new one is better
+            if (entry.height <= prev[existingIndex].height) {
+              return prev;
+            }
+
+            const updated = [...prev];
+            updated[existingIndex] = entry;
+            updated.sort((a, b) => b.height - a.height);
+            return updated;
+          });
+        };
+
         const triggerJump = (rawPower) => {
           const helperBoost = hasHelper ? rawPower * 0.05 : 0; // tiny nudge, not guaranteed
           const finalPower = clamp(rawPower + helperBoost, 0, 1);
@@ -194,7 +211,7 @@
           const heightPercent = Math.round(finalPower * 100);
           const success = finalPower >= 0.7; // threshold to "reach" the top of the tree
 
-          const nameForScore = playerName.trim() || "Anonymous";
+          const nameForScore = (playerName || "Anonymous").trim();
           const newEntry = {
             id: Date.now(),
             name: nameForScore,
@@ -214,14 +231,8 @@
             setTreeBurned(true);
           }
 
-          // Leaderboard only stores perfect 100% jumps
-          if (heightPercent === 100) {
-            setScores((prev) => {
-              const combined = [...prev, newEntry];
-              combined.sort((a, b) => b.id - a.id);
-              return combined.slice(0, 20);
-            });
-          }
+          // Update leaderboard for this name (all scores, best only)
+          updateLeaderboard(newEntry);
         };
 
         const startCharging = () => {
@@ -229,7 +240,7 @@
 
           setShowStar(false);
           setReachedTop(false);
-          // do not reset treeBurned here, only on success
+          // treeBurned only resets when you succeed
 
           setIsCharging(true);
 
@@ -336,10 +347,18 @@
                       </div>
                     )}
                     {/* tree body */}
-                    <div className={`w-16 h-10 ${treeLeafClass} rounded-full shadow-inner`} />
-                    <div className={`w-20 h-12 ${treeLeafClass} rounded-full -mt-3 shadow-inner`} />
-                    <div className={`w-24 h-14 ${treeLeafClass} rounded-full -mt-4 shadow-inner`} />
-                    <div className={`w-6 h-6 ${treeTrunkClass} rounded-md mt-1`} />
+                    <div
+                      className={`w-16 h-10 ${treeLeafClass} rounded-full shadow-inner`}
+                    />
+                    <div
+                      className={`w-20 h-12 ${treeLeafClass} rounded-full -mt-3 shadow-inner`}
+                    />
+                    <div
+                      className={`w-24 h-14 ${treeLeafClass} rounded-full -mt-4 shadow-inner`}
+                    />
+                    <div
+                      className={`w-6 h-6 ${treeTrunkClass} rounded-md mt-1`}
+                    />
                     {/* simple ornaments */}
                     <div className="absolute inset-0 flex items-center justify-center text-xs text-amber-200/80">
                       ● ● ●
@@ -347,47 +366,47 @@
                   </div>
                 </div>
 
-                {/* Ptit stickman + helper, RIGHT next to the tree, vertically offset for jump */}
+                {/* Ptit dwarf stickman + helper, RIGHT next to the tree, vertically offset for jump */}
                 <div
                   className="absolute left-[30%] bottom-4 flex flex-col items-center transition-transform duration-75"
                   style={{ transform: `translateY(-${ptitOffsetY}px)` }}
                 >
-                  <div className="relative flex flex-col items-center">
+                  <div className="relative flex flex-col items-center scale-90">
                     {/* helper sitting on shoulder */}
                     {hasHelper && (
                       <div className="absolute -top-3 -right-4 flex flex-col items-center text-[10px] text-slate-100">
                         <div className="w-4 h-4 rounded-full bg-fuchsia-400/90 border border-fuchsia-100" />
-                        <div className="mt-0.5">Buddy</div>
+                        <div className="mt-0.5">HA YOU GOT SCAMMED!!!!!!🐥</div>
                       </div>
                     )}
 
-                    {/* Ptit stickman */}
+                    {/* Ptit dwarf stickman */}
                     <div className="relative flex flex-col items-center">
-                      {/* head */}
-                      <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-900 flex items-center justify-center">
-                        <div className="w-7 h-7 rounded-full border border-slate-900 flex items-center justify-center">
-                          <div className="w-5 h-5 flex items-center justify-between">
+                      {/* head (smaller) */}
+                      <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-900 flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full border border-slate-900 flex items-center justify-center">
+                          <div className="w-4 h-4 flex items-center justify-between">
                             <span className="w-1 h-1 rounded-full bg-slate-900" />
                             <span className="w-1 h-1 rounded-full bg-slate-900" />
                           </div>
                         </div>
                       </div>
-                      {/* body */}
-                      <div className="w-[2px] h-6 bg-slate-100 mt-1" />
+                      {/* body (shorter) */}
+                      <div className="w-[2px] h-5 bg-slate-100 mt-1" />
                       {/* arms */}
                       <div className="flex mt-1 items-center">
-                        <div className="w-4 h-[2px] bg-slate-100 -rotate-12 origin-left" />
+                        <div className="w-3 h-[2px] bg-slate-100 -rotate-12 origin-left" />
                         {/* arm holding eggplant */}
-                        <div className="relative w-4 h-[2px] bg-slate-100 rotate-12 origin-right flex items-center justify-end">
-                          <span className="absolute right-[-6px] text-xl leading-none drop-shadow">
+                        <div className="relative w-3 h-[2px] bg-slate-100 rotate-12 origin-right flex items-center justify-end">
+                          <span className="absolute right-[-6px] text-lg leading-none drop-shadow">
                             🍆
                           </span>
                         </div>
                       </div>
-                      {/* legs */}
+                      {/* legs (shorter) */}
                       <div className="flex mt-1">
-                        <div className="w-3 h-[2px] bg-slate-100 -rotate-6 origin-top" />
-                        <div className="w-3 h-[2px] bg-slate-100 rotate-6 origin-top" />
+                        <div className="w-2 h-[2px] bg-slate-100 -rotate-6 origin-top" />
+                        <div className="w-2 h-[2px] bg-slate-100 rotate-6 origin-top" />
                       </div>
                     </div>
                   </div>
@@ -413,13 +432,13 @@
                     {/* arms with items */}
                     <div className="flex mt-1 items-center">
                       {/* deodorant can */}
-                      <div className="relative w-4 h-[2px] bg-slate-100 -rotate-18 origin-right flex items-center">
+                      <div className="relative w-4 h-[2px] bg-slate-100 -rotate-12 origin-right flex items-center">
                         <span className="absolute left-[-8px] text-lg leading-none">
                           🧴
                         </span>
                       </div>
                       {/* lighter */}
-                      <div className="relative w-4 h-[2px] bg-slate-100 rotate-18 origin-left flex items-center justify-end">
+                      <div className="relative w-4 h-[2px] bg-slate-100 rotate-12 origin-left flex items-center justify-end">
                         <span className="absolute right-[-8px] text-lg leading-none">
                           🔥
                         </span>
@@ -489,17 +508,17 @@
                 )}
               </div>
 
-              {/* Get a buff ? PayPal */}
+              {/* Send money to get a Buff*/}
               <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-3 space-y-2 text-[11px]">
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <div className="font-semibold flex items-center gap-1">
-                      <span>Helper (1€ )</span>
+                      <span>Helper (1€ tip)</span>
                       <span className="text-xs">❤️</span>
                     </div>
                     <p className="text-slate-300 mt-0.5">
-                      Choose a shoulder buddy for Ptit by sending a small tip.
-                      
+                      Get a jump buff - pay me.
+              
                     </p>
                   </div>
                 </div>
@@ -510,7 +529,7 @@
                     rel="noreferrer"
                     className="px-3 py-1.5 rounded-full bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-xs font-semibold shadow"
                   >
-                    send 1€ on PayPal
+                    Tip 1€ on PayPal
                   </a>
                   <button
                     type="button"
@@ -535,7 +554,7 @@
                 </p>
               </div>
 
-              {/* Player name + toggleable leaderboard (perfect 100% only) */}
+              {/* Player name + toggleable leaderboard (best score per name) */}
               <div className="rounded-2xl border border-slate-700 bg-slate-900/80 p-3 space-y-3 text-[11px]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
@@ -558,9 +577,7 @@
                 </div>
 
                 <div className="flex items-center justify-between mt-1">
-                  <span className="font-semibold">
-                    Perfect jumps leaderboard
-                  </span>
+                  <span className="font-semibold">Best jumps leaderboard</span>
                   <button
                     type="button"
                     onClick={() => setShowLeaderboard((v) => !v)}
@@ -574,13 +591,13 @@
                   <div className="mt-2">
                     {scores.length === 0 ? (
                       <div className="text-[10px] text-slate-400">
-                        Hit a 100% jump to appear here. 
+                        Will you be a loser or a winner?
                       </div>
                     ) : (
                       <div className="space-y-1 max-h-32 overflow-auto pr-1">
                         {scores.map((entry, index) => (
                           <div
-                            key={entry.id}
+                            key={entry.name}
                             className="flex items-center justify-between rounded-xl px-2 py-1 bg-slate-950/70 border border-slate-700/70"
                           >
                             <div className="flex items-center gap-2 min-w-0">
@@ -593,7 +610,9 @@
                             </div>
                             <div className="flex items-center gap-2 text-[10px]">
                               <span>{entry.height}%</span>
-                              <span className="text-amber-300">🍆</span>
+                              {entry.success && (
+                                <span className="text-amber-300">🍆</span>
+                              )}
                             </div>
                           </div>
                         ))}
