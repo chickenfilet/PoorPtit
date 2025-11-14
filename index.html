@@ -20,6 +20,9 @@
 
     <!-- Babel to compile JSX in the browser -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+      <!-- Firebase compat SDKs for single-file simplicity -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   </head>
   <body class="bg-slate-900">
     <div id="root"></div>
@@ -57,39 +60,36 @@
         const chargeEndRef = useRef(null);
         const tapCountRef = useRef(0);
         const jumpAnimationRef = useRef(null);
-
-        // Load scores from localStorage on mount
-        useEffect(() => {
-          try {
-            const stored = window.localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-              setScores(JSON.parse(stored));
-            }
-          } catch (e) {
-            // ignore
-          }
-        }, []);
-
-        // Persist scores
-        useEffect(() => {
-          try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
-          } catch (e) {
-            // ignore
-          }
-        }, [scores]);
-
-        // Cleanup timers/animations on unmount
-        useEffect(() => {
-          return () => {
-            if (chargeTimeoutRef.current) {
-              window.clearTimeout(chargeTimeoutRef.current);
-            }
-            if (jumpAnimationRef.current) {
-              cancelAnimationFrame(jumpAnimationRef.current);
-            }
-          };
-        }, []);
+    // ===== Firebase setup (REPLACE with your config) =====
+        const firebaseConfig={
+          apiKey:"AIzaSyDDf_4ZwQSqoOPPYI240kmUL2D1QEDHTSs",
+          authDomain:"svgscience-6bb49.firebaseapp.com",
+          projectId:"svgscience-6bb49",
+          storageBucket:"svgscience-6bb49.firebasestorage.app",
+          messagingSenderId:"493468414507",
+          appId:"1:493468414507:web:fc5b8eaa2ea72763d3706e",
+          measurementId: "G-2TW8KPGW6L"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db=firebase.firestore();
+        const scoresRef=db.collection("scores_siteB");
+    
+        const Card=({children,className=""})=> (
+          <div className={`rounded-2xl shadow-lg bg-white p-4 ${className}`}>{children}</div>
+        );
+        const Button=({children,onClick,disabled,className=""})=> (
+          <button
+            onClick={onClick}
+            disabled={disabled}
+            className={`w-full rounded-2xl px-4 py-3 font-semibold shadow ${
+              disabled
+                ? "bg-gray-300 text-gray-500"
+                : "bg-indigo-600 text-white active:translate-y-[1px]"
+            } ${className}`}
+          >
+            {children}
+          </button>
+        );
 
         // Countdown for the tapping window
         useEffect(() => {
